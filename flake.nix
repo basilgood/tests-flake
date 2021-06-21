@@ -16,44 +16,15 @@
         fhs = pkgs.buildFHSUserEnv {
           name = "acceptance-env";
           targetPkgs = pkgs: with pkgs; [
+            jre
             firefox
             google-chrome
             glib
             nspr
             nss
-            gtk3
             xorg.libX11
             xorg.libxcb
-            xorg.libXcomposite
-            xorg.libXcursor
-            xorg.libXdamage
-            xorg.libXext
-            xorg.libXfixes
-            freetype
-            xorg.libXrender
-            xorg.libXi
-            fontconfig
-            libdbusmenu
-            libdbusmenu-gtk3
-            glib
-            dbus
-            dbus-glib
-            cairo
-            pango
-            harfbuzz
-            atk
-            gdk-pixbuf
-            xorg.libXt
-            libdrm
-            cups
-            xorg.libXrandr
-            expat
-            libxkbcommon
-            xorg.libxshmfence
-            atk
-            xdg-utils
             nodejs
-            jre
           ];
           extraBuildCommands = ''
             chmod +w usr/bin
@@ -63,6 +34,14 @@
             export PS1="\n\[$(tput setaf 2)\]\w ☯️ \n\[$(tput setaf 4)\]\\$\[$(tput sgr0)\] "
           '';
         };
+        script = pkgs.writeScript "mklink" ''
+          #!${pkgs.runtimeShell}
+          chrome_wrapper=$(which chromium)
+          chrome_path=$(nix path-info "$chrome_wrapper")
+          chrome_binary=$chrome_path/bin/chromium
+
+          ln -sf "$chrome_binary" ${"$HOME/.cache/ms-playwright/chromium-*/chrome-linux/chrome"}
+        '';
       in
       {
         devShell = pkgs.mkShell {
@@ -70,6 +49,7 @@
           shellHook = ''
             export PATH=$PATH:$(npm bin)
             export XDG_DATA_DIRS=$XDG_DATA_DIRS:/etc/profiles/per-user/$USER/share
+            ${script}
           '';
         };
       }
